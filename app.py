@@ -5,7 +5,7 @@ from textblob import TextBlob
 import pandas as pd
 
 # ==========================================
-# 1. CONFIGURATION INITIALE (Une seule fois !)
+# 1. CONFIGURATION INITIALE
 # ==========================================
 @st.cache_resource
 def load_nlp_model(language):
@@ -14,12 +14,21 @@ def load_nlp_model(language):
     else:
         return spacy.load("en_core_web_sm")
 
-st.set_page_config(page_title="PMO IA - ECC", page_icon="⚙️", layout="wide")
+st.set_page_config(page_title="PMO IA - Ihsane Abdou", page_icon="⚙️", layout="wide")
 
 # ==========================================
 # 2. BARRE LATÉRALE (SIDEBAR)
 # ==========================================
 st.sidebar.image("https://upload.wikimedia.org/wikipedia/commons/thumb/1/12/Ecole_Centrale_Casablanca_Logo.png/800px-Ecole_Centrale_Casablanca_Logo.png", width=150)
+
+linkedin_url = "https://www.linkedin.com/in/ihsane-abdou-a4bab1323"
+st.sidebar.markdown("---")
+st.sidebar.markdown("### 👤 Développé par")
+st.sidebar.write("**Ihsane Abdou**")
+st.sidebar.caption("Élève-ingénieure | École Centrale Casablanca")
+st.sidebar.markdown(f"[![LinkedIn](https://img.shields.io/badge/LinkedIn-Profil-blue?style=flat&logo=linkedin)]({linkedin_url})")
+st.sidebar.markdown("---")
+
 st.sidebar.header("⚙️ Configuration")
 lang_choice = st.sidebar.selectbox("Langue de la charte", ["Français", "English"])
 
@@ -32,7 +41,7 @@ mode_analyse = st.sidebar.radio(
 # 3. INTERFACE PRINCIPALE
 # ==========================================
 st.title("⚙️ Assistant PMO Intelligent - ECC")
-st.markdown("*Outil d'analyse de charte basé sur le référentiel de Gestion de Projet.*")
+st.markdown(f"*Outil d'analyse de charte conçu par [Ihsane Abdou]({linkedin_url}).*")
 
 uploaded_file = st.file_uploader("Chargez le document du projet (.txt)", type=["txt"])
 
@@ -40,7 +49,6 @@ if uploaded_file:
     text = uploaded_file.getvalue().decode("utf-8")
     text_lower = text.lower()
     
-    # Création des 4 onglets
     tab1, tab2, tab3, tab4 = st.tabs(["📊 Audit des 5 Piliers", "💰 Analyse Financière", "🚩 Risques & NLP", "🗂️ Kanban (Jira)"])
 
     # --- ONGLET 1 : AUDIT DE MATURITÉ ---
@@ -71,7 +79,7 @@ if uploaded_file:
         st.progress(score_total / max_score)
         st.dataframe(pd.DataFrame(resultats_audit), use_container_width=True)
 
-    # --- ONGLET 2 : ANALYSE FINANCIÈRE ---
+    # --- ONGLET 2 : ANALYSE FINANCIÈRE (CORRIGÉ !) ---
     with tab2:
         st.header("📈 Extraction Automatique des Budgets")
         regex_pattern = r'\d+(?:[\s.,]\d+)*(?:\s?(?:MAD|USD|EUR|DH|DHs|MDH|درهم|د\.m))'
@@ -88,12 +96,64 @@ if uploaded_file:
         if all_budgets:
             st.success(f"Montants globaux détectés : {', '.join(all_budgets)}")
         
-        st.info("La simulation des phases s'effectue ici selon votre charte.")
+        st.divider()
+        st.header("📊 Simulation Prévu vs Réel (Phases)")
 
-    # --- ONGLET 3 : RISQUES & NLP (VERSION PRO) ---
+        # L'IA cherche "Phase 1", "Étape 2", etc.
+        phase_pattern = r"(Phase|Étape|Step)\s?(\d+)"
+        phases_trouvees = list(re.finditer(phase_pattern, text, re.IGNORECASE))
+
+        data_auto = []
+
+        # Extraction des montants liés aux phases
+        for match in phases_trouvees:
+            name = f"{match.group(1)} {match.group(2)}"
+            start_pos = match.end()
+            remaining_text = text[start_pos:start_pos + 200]
+            montant_match = re.search(regex_pattern, remaining_text)
+            
+            if montant_match:
+                montant_str = montant_match.group()
+                val_num = float(re.sub(r'[^\d.]', '', montant_str.replace(' ', '').replace(',', '.')))
+                data_auto.append({"Phase": name, "Budget Prévu": val_num, "Label": montant_str})
+
+        if data_auto:
+            df_auto = pd.DataFrame(data_auto)
+            st.success(f"✅ {len(data_auto)} phases détectées avec leurs budgets.")
+            
+            actual_data = []
+            
+            for index, row in df_auto.iterrows():
+                col1, col2 = st.columns(2)
+                col1.info(f"🎯 Prévu ({row['Phase']}) : {row['Label']}")
+                reel = col2.number_input(f"💸 Coût Réel ({row['Phase']})", min_value=0.0, value=float(row['Budget Prévu']), key=f"auto_sim_{index}")
+                
+                actual_data.append({
+                    "Phase": row['Phase'],
+                    "Théorique": row['Budget Prévu'],
+                    "Réel": reel
+                })
+            
+            # Affichage du graphe de simulation
+            df_comp = pd.DataFrame(actual_data)
+            st.subheader("📉 Visualisation des Écarts")
+            st.bar_chart(df_comp.set_index("Phase")[["Théorique", "Réel"]])
+            
+            # Bilan Mathématique
+            total_prevu = df_comp["Théorique"].sum()
+            total_reel = df_comp["Réel"].sum()
+            
+            if total_reel > total_prevu:
+                st.error(f"🚨 Dépassement détecté : {total_reel - total_prevu:,.2f} par rapport au plan initial.")
+            else:
+                st.success(f"✅ Budget maîtrisé. Économie de : {total_prevu - total_reel:,.2f}")
+        else:
+            st.info("💡 Astuce : Rédigez votre charte sous la forme 'Phase 1 : 5000 MAD' pour activer l'analyse prédictive.")
+
+
+    # --- ONGLET 3 : RISQUES & NLP ---
     with tab3:
         st.header("🚩 Matrice des Risques & Analyse IA")
-        
         col_ia, col_matrix = st.columns([1, 2])
         
         with col_ia:
@@ -112,8 +172,6 @@ if uploaded_file:
 
         with col_matrix:
             st.subheader("🎲 Registre des Risques")
-            st.write("Évaluez les risques identifiés par l'IA ou votre équipe.")
-            
             with st.expander("➕ Ajouter un risque identifié"):
                 with st.form("risk_form"):
                     desc_risque = st.text_input("Description du risque (ex: Retard capteurs IoT)")
@@ -124,25 +182,21 @@ if uploaded_file:
                     if submit_risk and desc_risque:
                         criticite = probabilite * impact
                         if criticite >= 15:
-                            st.error(f"🚨 Risque Majeur (Score: {criticite}/25) - Plan de mitigation urgent requis.")
+                            st.error(f"🚨 Risque Majeur (Score: {criticite}/25)")
                         elif criticite >= 8:
-                            st.warning(f"⚠️ Risque Modéré (Score: {criticite}/25) - À surveiller.")
+                            st.warning(f"⚠️ Risque Modéré (Score: {criticite}/25)")
                         else:
-                            st.success(f"✅ Risque Faible (Score: {criticite}/25) - Acceptable.")
+                            st.success(f"✅ Risque Faible (Score: {criticite}/25)")
 
     # --- ONGLET 4 : KANBAN (JIRA) ---
     with tab4:
         st.header("🗂️ Gestion Agile des Tâches")
-        st.write("Pilotez l'exécution de votre projet grâce à ce tableau Kanban interactif.")
-
         if 'taches' not in st.session_state:
             st.session_state.taches = []
 
-        # Bouton d'extraction automatique par IA
-        if st.button("🤖 Générer les tickets automatiquement depuis la charte"):
+        if st.button("🤖 Générer les tickets automatiquement"):
             lignes = text.split('\n')
             taches_ajoutees = 0
-            
             for ligne in lignes:
                 if re.search(r"(Phase|Étape|Step|Livrable)", ligne, re.IGNORECASE) or ligne.strip().startswith("-"):
                     tache_propre = ligne.strip('- ').strip()
@@ -150,26 +204,19 @@ if uploaded_file:
                         nouvel_id = len(st.session_state.taches) + 1
                         st.session_state.taches.append({"id": nouvel_id, "nom": tache_propre, "resp": "À assigner", "statut": "À faire"})
                         taches_ajoutees += 1
-            
             if taches_ajoutees > 0:
-                st.success(f"{taches_ajoutees} tâches extraites avec succès !")
+                st.success(f"✅ {taches_ajoutees} tâches extraites avec succès !")
                 st.rerun()
-            else:
-                st.warning("Aucune tâche structurée n'a été trouvée dans le texte.")
 
-        # Ajout manuel
         with st.expander("➕ Créer un nouveau ticket manuel"):
             with st.form("ajout_tache_form"):
                 nouvelle_tache = st.text_input("Description de la tâche")
                 responsable = st.text_input("Responsable (ex: Groupe PLBD 8)")
-                soumis = st.form_submit_button("Ajouter au Backlog")
-                
-                if soumis and nouvelle_tache:
-                    nouvel_id = len(st.session_state.taches) + 1
-                    st.session_state.taches.append({"id": nouvel_id, "nom": nouvelle_tache, "resp": responsable, "statut": "À faire"})
+                if st.form_submit_button("Ajouter au Backlog") and nouvelle_tache:
+                    st.session_state.taches.append({"id": len(st.session_state.taches) + 1, "nom": nouvelle_tache, "resp": responsable, "statut": "À faire"})
                     st.rerun()
 
-        # Affichage des colonnes Kanban (Le code qui manquait !)
+        st.markdown("---")
         col_todo, col_inprog, col_done = st.columns(3)
 
         with col_todo:
@@ -180,8 +227,7 @@ if uploaded_file:
                         st.write(f"**{tache['nom']}**")
                         st.caption(f"👤 {tache['resp']}")
                         if st.button("Démarrer ➡️", key=f"btn_start_{tache['id']}"):
-                            st.session_state.taches[i]['statut'] = "En cours"
-                            st.rerun()
+                            st.session_state.taches[i]['statut'] = "En cours"; st.rerun()
 
         with col_inprog:
             st.subheader("⏳ En cours")
@@ -193,12 +239,10 @@ if uploaded_file:
                         col_a, col_b = st.columns(2)
                         with col_a:
                             if st.button("⬅️ Stop", key=f"btn_back_{tache['id']}"):
-                                st.session_state.taches[i]['statut'] = "À faire"
-                                st.rerun()
+                                st.session_state.taches[i]['statut'] = "À faire"; st.rerun()
                         with col_b:
                             if st.button("Fini ✅", key=f"btn_done_{tache['id']}"):
-                                st.session_state.taches[i]['statut'] = "Terminé"
-                                st.rerun()
+                                st.session_state.taches[i]['statut'] = "Terminé"; st.rerun()
 
         with col_done:
             st.subheader("✅ Terminé")
@@ -208,22 +252,26 @@ if uploaded_file:
                         st.write(f"~~{tache['nom']}~~")
                         st.caption(f"👤 {tache['resp']}")
                         if st.button("Relancer 🔄", key=f"btn_redo_{tache['id']}"):
-                            st.session_state.taches[i]['statut'] = "En cours"
-                            st.rerun()
+                            st.session_state.taches[i]['statut'] = "En cours"; st.rerun()
 
-        # NOUVEAUTÉ PRO : BOUTON D'EXPORTATION
         st.divider()
         st.subheader("📥 Exporter le plan d'action")
-        st.write("Générez un fichier Excel/CSV pour votre rapport de projet.")
-        
         if st.session_state.taches:
-            df_taches = pd.DataFrame(st.session_state.taches)
-            csv = df_taches.to_csv(index=False).encode('utf-8')
-            st.download_button(
-                label="Télécharger le Backlog (CSV)",
-                data=csv,
-                file_name="backlog_projet.csv",
-                mime="text/csv",
-            )
+            csv = pd.DataFrame(st.session_state.taches).to_csv(index=False).encode('utf-8')
+            st.download_button("Télécharger le Backlog (CSV)", csv, "backlog_projet.csv", "text/csv")
         else:
             st.info("Ajoutez des tâches au Kanban pour activer l'exportation.")
+
+# ==========================================
+# 4. PIED DE PAGE PERSONNALISÉ
+# ==========================================
+st.divider()
+st.markdown(
+    f"""
+    <div style='text-align: center;'>
+        <p>Développé avec ❤️ par <b>Ihsane Abdou</b> pour l'École Centrale Casablanca</p>
+        <p><a href='{linkedin_url}' target='_blank'>Retrouvez-moi sur LinkedIn</a></p>
+    </div>
+    """, 
+    unsafe_allow_html=True
+)
