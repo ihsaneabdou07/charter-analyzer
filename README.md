@@ -1,42 +1,37 @@
-🛡️ Project Charter Health Analyzer (NLP)
-📌 Overview
-This project is an AI-powered decision-support tool designed to evaluate the quality of a Project Charter. As a general engineering student at École Centrale Casablanca, I developed this tool to bridge the gap between Project Management principles (the Triple Constraint) and Natural Language Processing (NLP).
+# ⚙️ Assistant PMO Intelligent - ECC
 
-The application automatically extracts key project data and assesses the "health" of the documentation to ensure that Scope, Time, and Cost are clearly defined.
+![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.28+-red.svg)
+![spaCy](https://img.shields.io/badge/NLP-spaCy-green.svg)
 
-🚀 Features
-Named Entity Recognition (NER): Uses spaCy to automatically detect budget figures (Cost) and deadlines (Time).
+Une application d'ingénierie web conçue pour automatiser l'analyse, l'audit et la gestion de chartes de projets. Développé dans le cadre des méthodologies de Gestion de Projet de l'**École Centrale Casablanca**.
 
-Triple Constraint Scoring: Evaluates if the three pillars of project management are present in the text.
+## 🎯 Objectif du Projet
+Transformer un document texte brut (Charte de projet) en un véritable tableau de bord interactif d'aide à la décision. L'outil utilise le Traitement du Langage Naturel (NLP) et des expressions régulières pour auditer la maturité du projet, extraire les données financières et générer un plan d'action Agile.
 
-Sentiment & Risk Analysis: Uses TextBlob to detect if the tone of the document suggests high risk or uncertainty.
+> **Cas d'usage principal :** Projet *Afiya* (Prédiction de fuites d'eau via IoT et Machine Learning).
 
-Interactive Dashboard: A clean, web-based UI built with Streamlit.
+## 🚀 Fonctionnalités Clés
 
-🛠️ Tech Stack
-Language: Python 3.x
+1. **📊 Audit des 5 Piliers :** Scanne le document pour vérifier la présence des concepts fondamentaux du management de projet (WBS, Charte, SMART, Matrice de risques, KPI).
+2. **💰 Analyse Financière Multilingue :** Extraction automatique du budget global et de la répartition par phases grâce à des modèles Regex robustes (Supporte MAD, USD, EUR, DH, MDH, درهم).
+3. **🚩 Matrice des Risques & Sentiment IA :** - Analyse du ton émotionnel du document (TextBlob).
+   - Registre interactif pour calculer la criticité des risques (Probabilité $\times$ Impact).
+4. **🗂️ Tableau Kanban (Jira-like) :**
+   - Auto-génération de tickets "À faire" en lisant les livrables du document.
+   - Déplacement interactif des tâches (À faire ➡️ En cours ➡️ Terminé).
+   - **Export CSV** du Backlog pour intégration dans MS Project ou Excel.
 
-NLP Libraries: spaCy (en_core_web_sm), TextBlob
+## 🛠️ Stack Technique
+- **Interface & Backend :** [Streamlit](https://streamlit.io/)
+- **Intelligence Artificielle (NLP) :** `spaCy` (Modèles Français et Anglais)
+- **Analyse de Sentiment :** `TextBlob`
+- **Manipulation de Données :** `Pandas`
+- **Extraction :** `re` (Expressions régulières Python)
 
-Frontend: Streamlit
+## 💻 Installation et Lancement
 
-Version Control: Git & GitHub
-
-📖 How to Use
-Clone the repository:
-
-Bash
-git clone https://github.com/ihsaneabdou07/charter-analyzer.git
-Install dependencies:
-
-Bash
-pip install streamlit spacy textblob
-python -m spacy download en_core_web_sm
-Run the application:
-
-Bash
-streamlit run app.py
-Upload a .txt file containing your project description or charter.
-
-🎓 Academic Context
-This project was developed as a personal initiative to apply Software Engineering best practices (learnt during Coding Week 2026) to real-world management challenges. It serves as a prototype for more advanced AI applications in the field of Agri-Tech and Sustainable Engineering.
+1. Clonez ce dépôt :
+   ```bash
+   git clone [https://github.com/votre-nom-utilisateur/charter-analyzer.git](https://github.com/votre-nom-utilisateur/charter-analyzer.git)
+   cd charter-analyzer
