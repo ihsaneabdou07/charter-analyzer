@@ -1,1 +1,20 @@
-The project is failing and we are worried about the terrible delays and high costs.
+Project Name: Afiya Smart Irrigation System
+Chef de projet : Ihsane (Groupe PLBD 8)
+
+1. INITIALISATION ET PLANIFICATION
+La charte de projet a été officiellement validée par le sponsor. Le périmètre est défini avec des objectifs SMART. Pour respecter nos délais, nous utilisons un WBS pour structurer le travail et un diagramme de Gantt pour le planning.
+
+2. EXÉCUTION ET BUDGET
+Le budget total est estimé à 120 000 DH.
+Phase 1 : Conception de l'architecture IoT pour 25000 MAD.
+Phase 2 : Achat du matériel et des capteurs pour 5000 USD.
+Phase 3 : Entraînement du modèle Machine Learning pour 30000 درهم.
+
+3. GESTION DES RISQUES ET TÂCHES
+La matrice de risque indique un danger concernant les livrables physiques. La communication avec les parties prenantes se fera par un reporting hebdomadaire.
+- Configurer le serveur de base de données.
+- Déployer l'application sur le cloud.
+- Définir les indicateurs et les KPI de qualité.
+
+4. ÉTAT D'ESPRIT (ANALYSE IA)
+We are facing some terrible delays with the supplier, which is very bad and stressful. However, the engineering team is extremely confident, happy, and excited to launch the final product!
